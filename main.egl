@@ -139,9 +139,6 @@ func BlitRectangle:uint8 x, uint8 y, uint8 w, uint8 h, uint8 color;
 	.data.b 0xCB
 }
 
-STR_HELLO:
-.data.s "HELLO_WORLD"
-
 .org 0x1FFA
 .data.w VBlank
 .data.w _start
