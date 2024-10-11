@@ -1,7 +1,3 @@
-
-
-
-
 .map.func 0x200
 .map.funcspm 0xF0
 .map.funclib 0xE0
@@ -34,6 +30,8 @@ uint8 BLIT_COLOR
 
 .bss 0x600
 uint8 FRAME_FLAG
+uint8 FRAME_FLIP
+uint8 BANK_FLIP
 uint8 rectX
 uint8 rectY
 uint8 velX
@@ -48,20 +46,22 @@ proc _start:
 	ldx #$FE
 	txs
 
-	";
-	BANK_CTRL = 0x00;
-	AUDIO_RATE = 0x00;
-	FRAME_FLAG = 0;
-	rectX = 30;
-	rectY = 10;
-	velX = 1;
-	velY = 1;
+	"
+	BANK_CTRL = 0x00
+	AUDIO_RATE = 0x00
+	FRAME_FLAG = 0
+	FRAME_FLIP = 0
+	BANK_FLIP = 8
+	rectX = 30
+	rectY = 10
+	velX = 1
+	velY = 1
 	jump main:
 }
 
 proc VBlank:
 {
-	FRAME_FLAG = 0;
+	FRAME_FLAG = 0
 	asm "rti"
 }
 
@@ -70,8 +70,6 @@ proc IRQ:
 	asm "rti"
 }
 
-
-
 proc main:
 {
 	do
@@ -79,49 +77,58 @@ proc main:
 		call BlitRectangle: 0, 0, 127, 127, (3^0xFF)
 		call BlitRectangle: rectX, rectY, 16, 16, (28^0xFF)
 
-		rectX = rectX + velX;
-		rectY = rectY + velY;
+		rectX = rectX + velX
+		rectY = rectY + velY
 		if rectX == 111
 		{
-			velX = 255;
+			velX = 255
 		}
 		if rectX == 0
 		{
-			velX = 1;
+			velX = 1
 		}
 		if rectY == 111
 		{
-			velY = 255;
+			velY = 255
 		}
 		if rectY == 0
 		{
-			velY = 1;
+			velY = 1
 		}
 
 		call waitVBlank:
+		call SwapBuffers:
 	}while 1 == 1
 
 }
 
 func waitVBlank:
 {
-	FRAME_FLAG = 1;
+	FRAME_FLAG = 1
 	do
 	{ }
 	while FRAME_FLAG == 1
 
 }
 
-funclib BlitRectangle:uint8 x, uint8 y, uint8 w, uint8 h, uint8 color;
+funclib BlitRectangle:uint8 x, uint8 y, uint8 w, uint8 h, uint8 color
 {
-	VIDEO_CTRL = 77;
-	BLIT_DSTX = x;
-	BLIT_DSTY = y;
-	BLIT_WIDTH = w;
-	BLIT_HEIGHT = h;
-	BLIT_COLOR = color;
-	BLIT_START = 1;
+	VIDEO_CTRL = 77 | FRAME_FLIP
+	BANK_CTRL = BANK_FLIP
+	BLIT_DSTX = x
+	BLIT_DSTY = y
+	BLIT_WIDTH = w
+	BLIT_HEIGHT = h
+	BLIT_COLOR = color
+	BLIT_START = 1
 	PAUSE
+}
+
+func SwapBuffers:
+{
+	FRAME_FLIP ^= 2
+	BANK_FLIP ^= 8
+	VIDEO_CTRL = 77 | FRAME_FLIP
 }
 
 .org 0x1FFA
