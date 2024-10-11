@@ -8,6 +8,8 @@
 .map.spm 0x00
 .map.lib 0x80
 
+.define PAUSE .data.b 0xCB
+
 .bss 0x2000
 uint8 AUDIO_RESET
 uint8 AUDIO_NMI
@@ -47,6 +49,7 @@ proc _start:
 	txs
 
 	";
+	BANK_CTRL = 0x00;
 	AUDIO_RATE = 0x00;
 	FRAME_FLAG = 0;
 	rectX = 30;
@@ -73,26 +76,8 @@ proc main:
 {
 	do
 	{
-		/*
-		call BlitRectangle: rectX, rectY, 16, 16, ~28
-		*/
-		VIDEO_CTRL = 77;
-
-		BLIT_DSTX = 0;
-		BLIT_DSTY = 0;
-		BLIT_WIDTH = 127;
-		BLIT_HEIGHT = 127;
-		BLIT_COLOR = 252;
-		BLIT_START = 1;
-		.data.b 0xCB
-
-		BLIT_DSTX = rectX;
-		BLIT_DSTY = rectY;
-		BLIT_WIDTH = 16;
-		BLIT_HEIGHT = 16;
-		BLIT_COLOR = 228;
-		BLIT_START = 1;
-		.data.b 0xCB
+		call BlitRectangle: 0, 0, 127, 127, (3^0xFF)
+		call BlitRectangle: rectX, rectY, 16, 16, (28^0xFF)
 
 		rectX = rectX + velX;
 		rectY = rectY + velY;
@@ -127,16 +112,16 @@ func waitVBlank:
 
 }
 
-func BlitRectangle:uint8 x, uint8 y, uint8 w, uint8 h, uint8 color;
+funclib BlitRectangle:uint8 x, uint8 y, uint8 w, uint8 h, uint8 color;
 {
-	VIDEO_CTRL = 73;
+	VIDEO_CTRL = 77;
 	BLIT_DSTX = x;
 	BLIT_DSTY = y;
 	BLIT_WIDTH = w;
 	BLIT_HEIGHT = h;
 	BLIT_COLOR = color;
 	BLIT_START = 1;
-	.data.b 0xCB
+	PAUSE
 }
 
 .org 0x1FFA

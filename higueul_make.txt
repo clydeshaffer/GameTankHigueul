@@ -3,7 +3,7 @@
 #options:-debug -asm
 #options:-cycle
 #cmd_execute: pwd
-options:-6502 -asm -mesen
+options:-65C02 -asm -mesen
 
 
 #file game
